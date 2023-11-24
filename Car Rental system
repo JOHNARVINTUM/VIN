@@ -1,0 +1,226 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+
+using namespace std;
+
+const int MAX_CARS = 100;
+struct Car {
+    string carMake; 
+    string model;
+    int year, horsepower;
+    double price;
+    bool rented;
+
+    Car() : rented(false) {}
+};
+
+Car cars[MAX_CARS];
+int numCars = 0;    
+
+void displayCars(const Car cars[], int numCars);
+void Car1();
+void Addcar();
+void RentCar();
+void Sortcars(char sortChoice);
+void Carstatus();
+void Totalamount();
+void Exit();
+
+int main() {
+    char choice;
+    Car1();
+
+    while (true) {
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case '1':
+                Addcar();
+                break;
+            case '2':
+                RentCar();
+                break;
+            case '3': {
+                char sortChoice;
+                cout << "Sort by:\n1. Horsepower\n2. Model\n3. Price\nEnter your choice: ";
+                cin >> sortChoice;
+                Sortcars(sortChoice);
+                break;
+            }
+            case '4':
+                Carstatus();
+                break;
+            case '5':
+                Totalamount();
+                break;
+            case '6':
+                Exit();
+                return 0;
+            default:
+                cout << "Invalid choice. Please enter a valid option." << endl;
+        }
+    }
+
+    return 0;
+}
+
+void displayCars(const Car cars[], int numCars) {
+    cout << left << setw(15) << "Manufacturer" << setw(15) << "Model" << setw(10) << "Year"
+         << setw(15) << "Horsepower" << setw(15) << "Price" << "\tStatus" << endl;
+
+    for (int i = 0; i < numCars; ++i) {
+        cout << left << setw(15) << cars[i].carMake << setw(15) << cars[i].model << setw(10) << cars[i].year
+             << setw(15) << cars[i].horsepower << "$" << fixed << setprecision(2) << setw(15) << cars[i].price
+             << (cars[i].rented ? "Rented" : "Available") << endl;
+    }
+}
+
+
+
+void Car1() {
+    cout << "=========================\n";
+    cout << "Welcome to Vroom or Vroom\n";
+    cout << "=========================\n";
+    cout << "1. Add car\n";
+    cout << "2. Rent car\n";
+    cout << "3. Sort cars\n";
+    cout << "4. Car status\n";
+    cout << "5. Total amount\n";
+    cout << "6. Exit\n";
+}
+
+void Addcar() {
+    string make, model;
+    int year, horsepower;
+    double price;
+
+    cout << "Enter Manufacturer: ";
+    cin >> make;
+    cout << "Enter Model: ";
+    cin >> model;
+    cout << "Enter Year: ";
+    cin >> year;
+    cout << "Enter Horsepower: ";
+    cin >> horsepower;
+    cout << "Enter Price: $";
+    cin >> price;
+
+    if (numCars < MAX_CARS) {
+        Car newCar;
+        newCar.carMake = make;
+        newCar.model = model;
+        newCar.year = year;
+        newCar.horsepower = horsepower;
+        newCar.price = price;
+        cars[numCars++] = newCar;
+        cout << "Car added successfully!" << endl;
+    } else {
+        cout << "Array is full. Cannot add more cars." << endl;
+    }
+
+    Car1();
+}
+
+void RentCar() {
+
+    cout << "Available Cars for Rent:\n";
+    for (int i = 0; i < numCars; ++i) {
+        if (!cars[i].rented) {
+            cout << "Make: " << cars[i].carMake << ", Model: " << cars[i].model << endl;
+        }
+    }
+
+    string make, model;
+
+    cout << "Enter make of the car you want to rent: ";
+    cin >> make;
+    cout << "Enter model of the car you want to rent: ";
+    cin >> model;
+
+    auto it = find_if(cars, cars + numCars, [&](const Car& car) {
+        return car.carMake == make && car.model == model && !car.rented;
+    });
+
+    if (it != cars + numCars) {
+        it->rented = true;
+        cout << "Car rented successfully Rented." << endl;
+    } else {
+        cout << "Car not found or already rented." << endl;
+    }
+
+    Car1();
+}
+
+void Sortcars(char sortChoice) {
+    switch (sortChoice) {
+        case '1':
+            sort(cars, cars + numCars, [](const Car& a, const Car& b) {
+                return a.horsepower > b.horsepower;
+            });
+            cout << "Cars sorted by Horsepower (highest to lowest)." << endl;
+            break;
+        case '2':
+            sort(cars, cars + numCars, [](const Car& a, const Car& b) {
+                return a.model > b.model;
+            });
+            cout << "Cars sorted by Model (Same name)." << endl;
+            break;
+        case '3':
+            sort(cars, cars + numCars, [](const Car& a, const Car& b) {
+                return a.price > b.price;
+            });
+            cout << "Cars sorted by Price (highest to lowest)." << endl;
+            break;
+        default:
+            cout << "Invalid sorting option." << endl;
+            return;
+    }
+    displayCars(cars, numCars);
+    Car1();
+}
+
+void Carstatus() {
+
+    cout << "Available Cars:\n";
+    displayCars(cars, numCars);
+
+    string make, model;
+
+    auto it = find_if(cars, cars + numCars, [&](const Car& car) {
+        return car.carMake == make && car.model == model;
+    });
+
+    if (it != cars + numCars) {
+        cout << "Status of " << it->carMake << " " << it->model << ": "
+             << (it->rented ? "Rented" : "Available") << endl;
+    } else {
+        cout << "You have reached the end of the list." << endl;
+    }
+
+    Car1();
+}
+
+void Totalamount() {
+    double totalAmount = 0.0;
+
+    for (int i = 0; i < numCars; ++i) {
+        if (cars[i].rented) {
+            int duration;
+            cout << "Enter rental duration for " << cars[i].carMake << " " << cars[i].model << " in days: ";
+            cin >> duration;
+
+            totalAmount += cars[i].price * duration;
+        }
+    }
+
+    cout << "Total amount for rented cars: $" << totalAmount << endl;
+
+    Car1();
+}
+
+void Exit() {
+    cout << "Thank you for your time" << endl;
+}
